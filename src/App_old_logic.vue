@@ -4,7 +4,7 @@
     <div class="content">
       <card
           v-for="(card, idx) in cards"
-          :key="card.id + '_' + idx"
+          :key="card.title + idx"
           :card-item="card"
           :current-index="idx"
           @animationHasEnded="animationHasEnded"
@@ -13,40 +13,29 @@
       </card>
     </div>
     <div class="content" v-if="showCheatCode">
-      <div class="my-card" v-for="card in cards" :key="card.title + Math.random()">
+      <div class="card" v-for="card in cards" :key="card.title + Math.random()">
         {{ card.title }}
       </div>
     </div>
 
-    <div class="grats" v-if="isAllCardsMatched">
-      <transition
-          enter-active-class="animate__animated animate__bounceInUp"
-          leave-active-class="animate__animated animate__bounceOutDown"
-          appear
-      >
+      <div class="grats" v-if="isAllCardsMatched">
+        <transition
+            enter-active-class="animate__animated animate__bounceInUp"
+            leave-active-class="animate__animated animate__bounceOutDown"
+            appear
+        >
         <h2>
           <span>Niiiiiiiiiiiice! You did it right! Congratulations!!!</span>
           <button class="btn btn-dark" @click="resetTheGame">Reset</button>
         </h2>
-      </transition>
-    </div>
+        </transition>
+      </div>
 
   </div>
 </template>
 
 <script>
 import Card from "@/components/Card.vue";
-
-
-// Метод для сортировки массива объектов в случайном порядке
-Array.prototype.shuffle = function () {
-  const copy = this.slice();
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-};
 
 export default {
   name: 'App',
@@ -98,15 +87,12 @@ export default {
           }
         }
       }
-      if (this.isAllCardsMatched) {
-        this.showCheatCode = false;
-      }
     },
-    animationHasEnded() {
+    animationHasEnded(ev) {
       this.isAnimationFinished = true;
     },
     resetTheGame() {
-      this.animationHasEnded();
+      this.isAnimationFinished = true;
       this.cards = generateRandomCards();
     },
     async activateCheatCode(ev) {
@@ -127,37 +113,77 @@ export default {
   },
   mounted() {
     document.onkeydown = ev => this.activateCheatCode(ev);
-    // setTimeout(() => this.cards.forEach(el => el.isMatched = true), 1000)
+    setTimeout(() => this.cards.forEach(el => el.isMatched = true), 1000)
   },
 }
 
-function generateCards() {
-  const cards = [];
-  const suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades'];
-  const cardValues = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-  for (let i = 0; i < cardValues.length; i++) {
-    for (let j = 0; j < suits.length; j++) {
-      cards.push({ id: i, value: cardValues[i], suit: suits[j] });
+
+function generateRandomCards() {
+  const nominals = [
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "Jack",
+    "Queen",
+    "King",
+    "Ace",
+  ];
+  const kinds = ["Hearts", "Clubs", "Diamonds", "Spades"];
+  const cards = new Array(16);
+  const indexes = [];
+  for (let i = 0; i < 16; i++) {
+    indexes.push(i);
+  }
+  const freeIndex = () => {
+    let rnd = getRandomNumber(0, 16);
+    if (indexes[rnd] !== null) {
+      return rnd;
+    } else {
+      return freeIndex();
     }
+  };
+
+  const freeCard = () => {
+    const rndCard = getRandomNumber(0, nominals.length);
+    const rndKind = getRandomNumber(0, kinds.length);
+    const title = `${ nominals[rndCard] } of ${ kinds[rndKind] }`;
+    const existedCard = cards.find((elem) => elem.title === title);
+    if (!existedCard) {
+      return {
+        rndCard,
+        rndKind,
+      };
+    } else {
+      return freeCard();
+    }
+  };
+
+  for (let i = 0; i < 8; i++) {
+    const rndCard = getRandomNumber(0, nominals.length);
+    const rndKind = getRandomNumber(0, kinds.length);
+
+    let rndIndex = freeIndex();
+    const newCard = new CardFactory(
+        `${ nominals[rndCard] } of ${ kinds[rndKind] }`
+    );
+    cards[rndIndex] = JSON.parse(JSON.stringify(newCard));
+    indexes[rndIndex] = null;
+
+    rndIndex = freeIndex();
+    cards[rndIndex] = JSON.parse(JSON.stringify(newCard));
+    indexes[rndIndex] = null;
   }
   return cards;
 }
 
-function generateRandomCards() {
-  let allCards = generateCards().shuffle().shuffle().slice(0, 8);
-  const res = [];
-  for (let i = 0; i < allCards.length; i++) {
-    res.push(new CardFactory(allCards[i]));
-    res.push(new CardFactory(allCards[i]));
-  }
-  return res.shuffle().shuffle();
-}
-
-function CardFactory({ id, value, suit }) {
-  this.id = id;
-  this.value = value;
-  this.suit = suit;
-  this.title = `${ value } of ${ suit }`;
+function CardFactory(title) {
+  this.title = title;
   this.isOpened = false;
   this.isMatched = false;
 }
@@ -204,12 +230,10 @@ a {
   grid-column-gap: 10px;
   grid-row-gap: 10px;
   padding: 20px;
-  z-index: 10;
 }
 
 .grats {
   position: absolute;
-  z-index: 999;
   top: 0;
   left: 0;
   width: 100%;
@@ -238,9 +262,9 @@ a {
   font-size: 30px;
 }
 
-.my-card {
+.card {
+  height: 200px;
   margin: 0;
-  border: 2px solid #000;
   position: relative;
 }
 </style>
