@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 class="alert alert-success">Find All Matches! 😉</h1>
+    <h1 class="alert alert-success find-all">Find All Matches! 😉</h1>
     <div class="content">
       <card
           v-for="(card, idx) in cards"
@@ -12,7 +12,7 @@
       >
       </card>
     </div>
-    <div class="content" v-if="showCheatCode">
+    <div class="content cheat-content" v-if="showCheatCode">
       <div class="my-card" v-for="card in cards" :key="card.title + Math.random()">
         {{ card.title }}
       </div>
@@ -22,6 +22,7 @@
       <transition
           enter-active-class="animate__animated animate__bounceInUp"
           leave-active-class="animate__animated animate__bounceOutDown"
+          mode="out-in"
           appear
       >
         <h2>
@@ -39,6 +40,7 @@ import Card from "@/components/Card.vue";
 
 
 // Метод для сортировки массива объектов в случайном порядке
+// Method for sorting array in random way
 Array.prototype.shuffle = function () {
   const copy = this.slice();
   for (let i = copy.length - 1; i > 0; i--) {
@@ -64,9 +66,7 @@ export default {
   },
   computed: {
     isAllCardsMatched() {
-      return (
-          this.cards.filter((elem) => elem.isMatched).length === this.cards.length
-      );
+      return this.cards.filter((elem) => elem.isMatched).length === this.cards.length
     },
   },
   methods: {
@@ -80,15 +80,18 @@ export default {
                 elem.title === this.cards[idx].title &&
                 index !== idx
         );
-        const openedCard = this.cards.find(
-            (elem, i) => elem.isOpened && !elem.isMatched && i !== idx
-        );
+
         this.cards[idx].isOpened = !this.cards[idx].isOpened;
+
         if (this.cards[idx].isOpened && existedCard) {
           this.cards[idx].isMatched = true;
           existedCard.isMatched = true;
         } else {
           this.cards[idx].isMatched = false;
+
+          const openedCard = this.cards.find(
+              (elem, i) => elem.isOpened && !elem.isMatched && i !== idx
+          );
           if (openedCard) {
             setTimeout(() => {
               this.cards[idx].isOpened = false;
@@ -123,14 +126,18 @@ export default {
     }
   },
   created() {
+    // initialization of the game
     this.cards = generateRandomCards();
   },
   mounted() {
     document.onkeydown = ev => this.activateCheatCode(ev);
-    // setTimeout(() => this.cards.forEach(el => el.isMatched = true), 1000)
   },
 }
 
+/**
+ * generates a deck of cards
+ * @returns {*[]}
+ */
 function generateCards() {
   const cards = [];
   const suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades'];
@@ -143,6 +150,11 @@ function generateCards() {
   return cards;
 }
 
+/**
+ * generates cards for the game
+ * takes 8 random cards and doubles it for finding pairs
+ * @returns Array<CardFactory>
+ */
 function generateRandomCards() {
   let allCards = generateCards().shuffle().shuffle().slice(0, 8);
   const res = [];
@@ -153,6 +165,13 @@ function generateRandomCards() {
   return res.shuffle().shuffle();
 }
 
+/**
+ * factory of cards
+ * @param id
+ * @param value
+ * @param suit
+ * @constructor
+ */
 function CardFactory({ id, value, suit }) {
   this.id = id;
   this.value = value;
@@ -160,10 +179,6 @@ function CardFactory({ id, value, suit }) {
   this.title = `${ value } of ${ suit }`;
   this.isOpened = false;
   this.isMatched = false;
-}
-
-function getRandomNumber(min, max) {
-  return Math.floor(Math.random() * (max - min)) + min;
 }
 </script>
 
@@ -181,6 +196,14 @@ function getRandomNumber(min, max) {
 h1,
 h2 {
   font-weight: normal;
+}
+
+.find-all {
+  font-size: 3rem;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
 }
 
 ul {
@@ -201,10 +224,10 @@ a {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(4, 1fr);
-  grid-column-gap: 10px;
-  grid-row-gap: 10px;
-  padding: 20px;
+  gap: 10px;
+  padding: 0 20px 20px;
   z-index: 10;
+  position: relative;
 }
 
 .grats {
@@ -242,6 +265,40 @@ a {
   margin: 0;
   border: 2px solid #000;
   position: relative;
+}
+
+.cheat-content {
+  font-size: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  html {
+    font-size: 10px;
+  }
+
+  .cheat-content {
+    font-size: 2rem;
+  }
+
+  .grats button,
+  .grats h2 {
+    font-size: 3rem;
+  }
+}
+
+@media (min-width: 2561px) {
+  html {
+    font-size: 20px;
+  }
+
+  .cheat-content {
+    font-size: 2.5rem;
+  }
+
+  .grats button,
+  .grats h2 {
+    font-size: 6rem;
+  }
 }
 </style>
 
