@@ -1,27 +1,27 @@
 <template>
   <div class="card" @click.stop="onClick">
     <transition
-      mode="out-in"
-      name="flip-horizontally"
-      @after-enter="$emit('animationHasEnded')"
+        mode="out-in"
+        name="flip-horizontally"
+        @after-enter="$emit('animationHasEnded')"
     >
       <div
-        v-if="!cardItem.isOpened || (cardItem.opened && !cardItem.isMatched)"
-        key="backSide"
-        class="card-back-side"
+          v-if="!cardItem.isOpened || (cardItem.opened && !cardItem.isMatched)"
+          key="backSide"
+          class="card-back-side"
       ></div>
 
       <div v-else key="frontSide" class="card-front-side">
         <div class="card-header text-left">
           <span>{{ cardItem.value }}</span>
-          <img :alt="cardItem.title" :src="imageSource" />
+          <img :alt="cardItem.title" :src="imageSource"/>
         </div>
         <div class="card-content">
-          <img :alt="cardItem.title" :src="imageSource" />
+          <img :alt="cardItem.title" :src="imageSource"/>
         </div>
         <div class="card-footer text-right">
           <span>{{ cardItem.value }}</span>
-          <img :alt="cardItem.title" :src="imageSource" />
+          <img :alt="cardItem.title" :src="imageSource"/>
         </div>
       </div>
     </transition>
@@ -62,7 +62,8 @@ export default {
 
 <style lang="less" scoped>
 .card {
-  height: 200px;
+  min-height: 200px;
+  height: 20vh;
   margin: 0;
   position: relative;
   perspective: 1000px;
@@ -86,11 +87,27 @@ export default {
 
     span {
       font-size: 30px;
-      margin: 0 0 0 15px;
+
+      @media (max-width: 1024px) {
+        font-size: 2rem;
+        margin: 0;
+      }
+
+      @media (min-width: 2561px) {
+        font-size: 3rem;
+      }
     }
 
     img {
-      height: 70%;
+      height: 30px;
+
+      @media (max-width: 1024px) {
+        height: 2rem;
+      }
+
+      @media (min-width: 2561px) {
+        height: 3rem;
+      }
     }
   }
 
@@ -112,7 +129,7 @@ export default {
   }
 
   &-front-side {
-    background: #ddd;
+    background: #eee;
     height: 100%;
   }
 
